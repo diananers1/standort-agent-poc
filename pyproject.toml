@@ -10,6 +10,9 @@ requires-python = ">=3.11"
 
 dependencies = [
     "pydantic>=2.0",
+    "langgraph",
+    "gradio",
+    "jinja2",
 ]
 
 [project.optional-dependencies]

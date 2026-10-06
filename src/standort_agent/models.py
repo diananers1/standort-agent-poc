@@ -1,6 +1,8 @@
 from __future__ import annotations
 
-from pydantic import BaseModel, Field, model_validator
+import re
+
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 
 class AgeDistribution(BaseModel):
@@ -41,11 +43,28 @@ class MunicipalityDataset(BaseModel):
 
 
 class BusinessProfile(BaseModel):
-    branche: str
-    flaeche_m2: float = Field(gt=0)
-    zielgruppe: str
-    budget_miete_eur: float = Field(gt=0)
+    branche: str = Field(min_length=1)
+    flaeche_m2: float = Field(gt=0, le=100_000, allow_inf_nan=False)
+    zielgruppe: str = Field(min_length=1)
+    budget_miete_eur: float = Field(ge=200, le=10_000_000, allow_inf_nan=False)
     region_praeferenz: str
+
+    @field_validator("flaeche_m2", "budget_miete_eur", mode="before")
+    @classmethod
+    def validate_number_format(cls, value):
+        if isinstance(value, str):
+            value = value.strip()
+            if not re.fullmatch(r"[+-]?(?:[0-9]+(?:\.[0-9]+)?|\.[0-9]+)", value):
+                raise ValueError(
+                    "Enter a plain number such as 200 or 200.5; "
+                    "letters, scientific notation and thousands separators are not accepted"
+                )
+        return value
+
+    @field_validator("branche", "zielgruppe", "region_praeferenz", mode="before")
+    @classmethod
+    def strip_text(cls, value):
+        return value.strip() if isinstance(value, str) else value
 
 
 class TargetAgeWeights(BaseModel):

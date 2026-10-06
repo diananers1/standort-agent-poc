@@ -1,3 +1,5 @@
+import re
+
 from standort_agent.models import (
     BusinessProfile,
     InterpretedProfile,
@@ -5,30 +7,58 @@ from standort_agent.models import (
 )
 
 
+AUSTRIAN_LOCATIONS = {
+    # Country
+    "österreich",
+    "austria",
+
+    # Federal states
+    "wien",
+    "niederösterreich",
+    "oberösterreich",
+    "steiermark",
+    "kärnten",
+    "salzburg",
+    "tirol",
+    "vorarlberg",
+    "burgenland",
+
+    # Cities represented in the dataset
+    "graz",
+    "linz",
+    "wels",
+    "leoben",
+    "innsbruck",
+    "klagenfurt",
+    "villach",
+    "st. pölten",
+    "st pölten",
+    "wiener neustadt",
+    "eisenstadt",
+    "bregenz",
+    "dornbirn",
+}
+
+
+def is_supported_region(text: str) -> bool:
+    try:
+        interpret_region(text)
+    except ValueError:
+        return False
+    return True
+
+
 def detect_business_category(text: str) -> str:
-    value = text.lower()
-
-    if "retail" in value or "einzelhandel" in value:
-        return "retail"
-
-    if (
-        "gastronomie" in value
-        or "café" in value
-        or "cafe" in value
-        or "restaurant" in value
-    ):
-        return "cafe"
-
-    if (
-        "fitness" in value
-        or "wellness" in value
-        or "studio" in value
-    ):
-        return "fitness"
-
-    if "logistik" in value or "logistics" in value:
-        return "logistics"
-
+    value = text.casefold()
+    patterns = {
+        "retail": r"\b(?:retail|einzelhandel)\b",
+        "cafe": r"\b(?:gastronomie|café|cafe|restaurant)\b",
+        "fitness": r"\b(?:fitness|wellness|wellnessstudio|fitnessstudio)\b",
+        "logistics": r"\b(?:logistik|logistics)\b",
+    }
+    for category, pattern in patterns.items():
+        if re.search(pattern, value):
+            return category
     return "general"
 
 
@@ -38,10 +68,7 @@ def interpret_target_group(
     value = text.lower()
 
     if (
-        "junge" in value
-        or "25" in value
-        or "student" in value
-        or "studierende" in value
+        re.search(r"\b(?:junge|student\w*|studierende\w*)\b|\b25\b", value)
     ):
         if "famil" in value:
             return TargetAgeWeights(
@@ -56,7 +83,7 @@ def interpret_target_group(
             age_55_plus=0.0,
         )
 
-    if "ab 30" in value:
+    if re.search(r"\bab\s+30\b", value):
         return TargetAgeWeights(
             age_18_34=0.20,
             age_35_54=0.60,
@@ -70,35 +97,81 @@ def interpret_target_group(
     )
 
 
-def interpret_region(
-    text: str,
-) -> list[str]:
+def interpret_region(text: str) -> list[str]:
     value = text.strip().lower()
 
+    # Empty list means nationwide search.
     if value in {
+        "",
         "österreich",
         "austria",
-        "",
     }:
         return []
 
-    locations = []
-
     candidates = {
+        # Cities
         "wien": "Wien",
         "graz": "Graz",
         "linz": "Linz",
-        "salzburg": "Salzburg",
+        "wels": "Wels",
+        "leoben": "Leoben",
         "innsbruck": "Innsbruck",
+        "salzburg": "Salzburg",
         "klagenfurt": "Klagenfurt",
         "villach": "Villach",
+        "st. pölten": "St. Pölten",
+        "st pölten": "St. Pölten",
+        "wiener neustadt": "Wiener Neustadt",
+        "eisenstadt": "Eisenstadt",
+        "bregenz": "Bregenz",
+        "dornbirn": "Dornbirn",
+
+        # Federal states
+        "steiermark": "Steiermark",
+        "oberösterreich": "Oberösterreich",
+        "niederösterreich": "Niederösterreich",
+        "kärnten": "Kärnten",
+        "tirol": "Tirol",
+        "vorarlberg": "Vorarlberg",
+        "burgenland": "Burgenland",
     }
 
-    for keyword, normalized in candidates.items():
-        if keyword in value:
+    # Accept complete location names separated by explicit conjunctions.
+    # Reject negations, unknown fragments, and partially supported requests.
+    parts = re.split(r"\s+(?:oder|und|or|and)\s+|[,;/]", value)
+    locations = []
+    for part in parts:
+        normalized = candidates.get(part.strip())
+        if normalized is None:
+            raise ValueError(
+                "Preferred region: enter an Austrian city or federal state "
+                "represented in the dataset, or Österreich for all Austria. "
+                "Separate multiple locations with 'oder' or commas."
+            )
+        if normalized not in locations:
             locations.append(normalized)
-
     return locations
+
+
+def profile_input_errors(profile: BusinessProfile) -> list[str]:
+    """Identify text the supported rules cannot interpret reliably."""
+    errors = []
+    if detect_business_category(profile.branche) == "general":
+        errors.append(
+            "Business / Industry: enter Retail / Einzelhandel, Gastronomie / Café, "
+            "Fitness / Wellness, or Logistik."
+        )
+    target = profile.zielgruppe.strip().casefold()
+    if not re.search(r"\b(?:junge|student\w*|studierende\w*)\b|\b25\b|\bab\s+30\b", target):
+        errors.append(
+            "Target group: use a supported description such as Junge Berufstätige "
+            "(25–40), Studierende und Familien, or Erwachsene ab 30."
+        )
+    try:
+        interpret_region(profile.region_praeferenz)
+    except ValueError as exc:
+        errors.append(str(exc))
+    return errors
 
 
 def interpret_profile(
