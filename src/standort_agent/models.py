@@ -4,6 +4,7 @@ import re
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
+# Defines and validates municipalities, profiles, signal results, and evaluations
 
 class AgeDistribution(BaseModel):
     age_18_34: float = Field(alias="18_34", ge=0.0, le=1.0)
@@ -44,7 +45,7 @@ class MunicipalityDataset(BaseModel):
 
 class BusinessProfile(BaseModel):
     branche: str = Field(min_length=1)
-    flaeche_m2: float = Field(gt=0, le=100_000, allow_inf_nan=False)
+    flaeche_m2: float = Field(gt=10, le=100_000, allow_inf_nan=False)
     zielgruppe: str = Field(min_length=1)
     budget_miete_eur: float = Field(ge=200, le=10_000_000, allow_inf_nan=False)
     region_praeferenz: str
