@@ -58,6 +58,25 @@ def test_region(text, expected):
     assert interpret_region(text) == expected
 
 
+@pytest.mark.parametrize("regions,expected", [
+    (["Graz", "Linz"], ["Graz", "Linz"]),
+    ([" WIEN ", "Wien"], ["Wien"]),
+    (["Österreich"], []),
+])
+def test_region_selection_bypasses_text_splitting(regions, expected, monkeypatch):
+    def unexpected_split(*args, **kwargs):
+        raise AssertionError("Dropdown selections must not be parsed as text")
+
+    monkeypatch.setattr("standort_agent.interpretation.rules.re.split", unexpected_split)
+    assert interpret_region(regions) == expected
+
+
+@pytest.mark.parametrize("regions", [[], ["Österreich", "Wien"], ["Wien", "Berlin"], ["Graz oder Linz"]])
+def test_invalid_region_selections(regions):
+    with pytest.raises(ValueError):
+        interpret_region(regions)
+
+
 @pytest.mark.parametrize("number,category,locations", [
     (1, "retail", ["Wien"]), (2, "cafe", []),
     (3, "fitness", ["Graz", "Linz"]),

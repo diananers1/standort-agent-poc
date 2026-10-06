@@ -132,7 +132,7 @@
 
     <p>
         <strong>Preferred region:</strong>
-        {{ profile.region_praeferenz }}
+        {{ profile.region_praeferenz if profile.region_praeferenz is string else profile.region_praeferenz | join(', ') }}
     </p>
 
 </section>

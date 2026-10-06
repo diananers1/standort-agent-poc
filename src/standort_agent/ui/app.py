@@ -59,14 +59,6 @@ def analyze_location(
     # 1. Build validated business profile
     # -----------------------------------------------
 
-    region_errors = []
-    if isinstance(region_praeferenz, list):
-        if not region_praeferenz:
-            region_errors.append("Preferred region: select at least one location or All Austria.")
-        elif "Österreich" in region_praeferenz and len(region_praeferenz) > 1:
-            region_errors.append("Preferred region: select All Austria on its own, or choose individual locations.")
-        region_praeferenz = " oder ".join(region_praeferenz)
-
     values = dict(
         branche=branche, flaeche_m2=flaeche_m2, zielgruppe=zielgruppe,
         budget_miete_eur=budget_miete_eur, region_praeferenz=region_praeferenz,
@@ -86,14 +78,13 @@ def analyze_location(
             field = error["loc"][0]
             errors.append(f"{labels.get(field, field)}: {error['msg']}.")
         # Report unrecognized text even when numeric fields are invalid.
-        text_profile = values | {"flaeche_m2": 1, "budget_miete_eur": 200}
+        text_profile = values | {"flaeche_m2": 11, "budget_miete_eur": 200}
         try:
             errors.extend(profile_input_errors(BusinessProfile(**text_profile)))
         except ValidationError:
             pass
     else:
         errors = profile_input_errors(profile)
-    errors.extend(region_errors)
     if errors:
         return [], "## Please check your input\n\n" + "\n\n".join(errors), None
 

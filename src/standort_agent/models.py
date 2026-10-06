@@ -48,7 +48,7 @@ class BusinessProfile(BaseModel):
     flaeche_m2: float = Field(gt=10, le=100_000, allow_inf_nan=False)
     zielgruppe: str = Field(min_length=1)
     budget_miete_eur: float = Field(ge=200, le=10_000_000, allow_inf_nan=False)
-    region_praeferenz: str
+    region_praeferenz: str | list[str]
 
     @field_validator("flaeche_m2", "budget_miete_eur", mode="before")
     @classmethod

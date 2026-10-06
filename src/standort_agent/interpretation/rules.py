@@ -40,7 +40,7 @@ AUSTRIAN_LOCATIONS = {
 }
 
 
-def is_supported_region(text: str) -> bool:
+def is_supported_region(text: str | list[str]) -> bool:
     try:
         interpret_region(text)
     except ValueError:
@@ -97,16 +97,24 @@ def interpret_target_group(
     )
 
 
-def interpret_region(text: str) -> list[str]:
-    value = text.strip().lower()
+def interpret_region(text: str | list[str]) -> list[str]:
+    if isinstance(text, list):
+        if not text:
+            raise ValueError("Preferred region: select at least one location or All Austria.")
+        parts = [part.strip().lower() for part in text]
+        if any(part in {"österreich", "austria"} for part in parts):
+            if len(parts) != 1:
+                raise ValueError("Preferred region: select All Austria on its own, or choose individual locations.")
+            return []
+    else:
+        value = text.strip().lower()
 
-    # Empty list means nationwide search.
-    if value in {
-        "",
-        "österreich",
-        "austria",
-    }:
-        return []
+        # An empty interpreted list means nationwide search.
+        if value in {"", "österreich", "austria"}:
+            return []
+
+        # Legacy text callers can separate complete location names.
+        parts = re.split(r"\s+(?:oder|und|or|and)\s+|[,;/]", value)
 
     candidates = {
         # Cities
@@ -136,9 +144,6 @@ def interpret_region(text: str) -> list[str]:
         "burgenland": "Burgenland",
     }
 
-    # Accept complete location names separated by explicit conjunctions.
-    # Reject negations, unknown fragments, and partially supported requests.
-    parts = re.split(r"\s+(?:oder|und|or|and)\s+|[,;/]", value)
     locations = []
     for part in parts:
         normalized = candidates.get(part.strip())
