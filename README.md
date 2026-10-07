@@ -42,3 +42,54 @@ AI Factory Austria steht für Chancengleichheit. Ob Uni, Bootcamp oder self-taug
 > Was du hier nicht findest, ist unsere eigene Referenzlösung. Die heben wir bewusst für den gemeinsamen Debrief auf, damit du frei und ohne Anchoring an die Aufgabe gehst.
 
 *AI:AT Hiring Team*
+
+## Groq LLM specialists
+
+The LangGraph workflow computes numerical scores in Python, then uses four
+Groq-backed specialist roles (demographics, surroundings, affordability and
+transport) to interpret the top five results. A fifth call synthesizes the
+customer recommendation. The LLM cannot change scores or reorder rankings.
+Structured JSON responses are validated before any explanation is applied.
+Model text still needs factual review; schema validation alone does not prove
+that every interpretation is correct.
+
+Install the updated dependencies:
+
+```bash
+uv pip install -e '.[dev]'
+```
+
+Create a replacement key in the Groq console. Copy `.env.example` to `.env`
+in the project root and replace the placeholder locally:
+
+```dotenv
+GROQ_API_KEY=your-new-key
+GROQ_MODEL=openai/gpt-oss-20b
+STANDORT_LLM_MODE=groq
+```
+
+The app automatically reads this file regardless of the working directory.
+Explicit shell environment variables take precedence. `.env` is ignored by Git;
+never commit API keys. Restart the app after changing settings.
+
+```bash
+PYTHONPATH="$PWD/src" python -m standort_agent.ui.app
+```
+
+The default model is listed in Groq's free-plan limits:
+https://console.groq.com/docs/rate-limits . Account access and limits can change.
+Each analysis makes five sequential API calls; repeated analyses may hit the
+free-plan request or token limits. There are no automatic retries.
+
+`groq` mode shows an error if the API cannot complete the analysis. `auto`
+(the default) uses clearly labelled rule-based explanations if no key is set
+or Groq fails. `offline` makes no API calls and satisfies the challenge's
+requirement for a run without credentials. The UI and downloaded report show
+which mode actually produced the explanations. Inputs and shortlisted data
+are sent to Groq in live mode. No key is stored in source code or reports.
+
+Run tests without network calls:
+
+```bash
+STANDORT_LLM_MODE=offline pytest -q
+```

@@ -190,3 +190,17 @@ def test_invalid_location_selection_shows_popup(values, regions, expected):
     assert expected in message
     with pytest.raises(app.gr.Error, match=expected):
         next(callback)
+
+
+def test_dropdown_ids_flow_through_ui_and_readable_report(tmp_path, monkeypatch):
+    monkeypatch.setattr(app, "OUTPUT_PATH", tmp_path / "report.html")
+    rows, summary, report = app.analyze_location(
+        "retail", "200", "young_professionals", "4000", ["Graz", "Wien"]
+    )
+    assert rows
+    assert all(row[0].split("(", 1)[0].strip() in {"Graz", "Wien"} for row in rows)
+    html = Path(report).read_text(encoding="utf-8")
+    assert "Junge Berufstätige (25–40)" in html
+    assert "Retail / Einzelhandel" in html
+    assert "Graz oder Wien" in html
+    assert "young_professionals" not in html

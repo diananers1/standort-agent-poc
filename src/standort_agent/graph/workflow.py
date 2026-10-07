@@ -1,5 +1,7 @@
 from typing import Literal
 
+from standort_agent.llm.groq_agents import enrich_with_groq
+
 from langgraph.graph import END, START, StateGraph
 
 from standort_agent.agents.demographics import (
@@ -181,6 +183,8 @@ def build_location_graph():
         evaluate_locations_node,
     )
 
+    builder.add_node("llm_analysis", enrich_with_groq)
+
     # START
     builder.add_edge(
         START,
@@ -214,8 +218,10 @@ def build_location_graph():
 
     builder.add_edge(
         "evaluate_locations",
-        END,
+        "llm_analysis",
     )
+
+    builder.add_edge("llm_analysis", END)
 
     return builder.compile()
 

@@ -1,5 +1,7 @@
 import re
 
+# Converts supported descriptions into business categories, age weights, and location preferences
+
 from standort_agent.models import (
     BusinessProfile,
     InterpretedProfile,
@@ -7,40 +9,35 @@ from standort_agent.models import (
 )
 
 
-AUSTRIAN_LOCATIONS = {
-    # Country
-    "österreich",
-    "austria",
-
-    # Federal states
-    "wien",
-    "niederösterreich",
-    "oberösterreich",
-    "steiermark",
-    "kärnten",
-    "salzburg",
-    "tirol",
-    "vorarlberg",
-    "burgenland",
-
-    # Cities represented in the dataset
-    "graz",
-    "linz",
-    "wels",
-    "leoben",
-    "innsbruck",
-    "klagenfurt",
-    "villach",
-    "st. pölten",
-    "st pölten",
-    "wiener neustadt",
-    "eisenstadt",
-    "bregenz",
-    "dornbirn",
+INDUSTRY_LABELS = {
+    "retail": "Retail / Einzelhandel",
+    "cafe": "Gastronomie / Café",
+    "fitness": "Fitness / Wellnessstudio",
+    "logistics": "Logistik",
+}
+TARGET_GROUP_LABELS = {
+    "young_professionals": "Junge Berufstätige (25–40)",
+    "students_families": "Studierende und Familien",
+    "adults_30_plus": "Erwachsene ab 30, gesundheitsbewusst",
+}
+TARGET_GROUP_WEIGHTS = {
+    "young_professionals": {"age_18_34": 0.75, "age_35_54": 0.25, "age_55_plus": 0.0},
+    "students_families": {"age_18_34": 0.55, "age_35_54": 0.40, "age_55_plus": 0.05},
+    "adults_30_plus": {"age_18_34": 0.20, "age_35_54": 0.60, "age_55_plus": 0.20},
 }
 
 
-def is_supported_region(text: str | list[str]) -> bool:
+def profile_for_display(profile: BusinessProfile) -> BusinessProfile:
+    """Keep dropdown IDs internal and show readable descriptions in reports."""
+    region = profile.region_praeferenz
+    return profile.model_copy(update={
+        "branche": INDUSTRY_LABELS.get(profile.branche, profile.branche),
+        "zielgruppe": TARGET_GROUP_LABELS.get(profile.zielgruppe, profile.zielgruppe),
+        "region_praeferenz": " oder ".join(region) if isinstance(region, list) else region,
+    })
+
+
+def is_supported_region(text: str) -> bool:
     try:
         interpret_region(text)
     except ValueError:
@@ -49,6 +46,10 @@ def is_supported_region(text: str | list[str]) -> bool:
 
 
 def detect_business_category(text: str) -> str:
+    """Detects the business category from the text."""
+    if text in INDUSTRY_LABELS:
+        return text
+    # Adapter for descriptive JSON profiles and legacy text inputs.
     value = text.casefold()
     patterns = {
         "retail": r"\b(?:retail|einzelhandel)\b",
@@ -65,6 +66,10 @@ def detect_business_category(text: str) -> str:
 def interpret_target_group(
     text: str,
 ) -> TargetAgeWeights:
+    """Converts the target group description into age weights."""
+    if text in TARGET_GROUP_WEIGHTS:
+        return TargetAgeWeights(**TARGET_GROUP_WEIGHTS[text])
+    # Adapter for descriptive JSON profiles and legacy text inputs.
     value = text.lower()
 
     if (
@@ -98,23 +103,26 @@ def interpret_target_group(
 
 
 def interpret_region(text: str | list[str]) -> list[str]:
-    if isinstance(text, list):
-        if not text:
+    selected = text if isinstance(text, list) else None
+    if selected is not None:
+        if not selected:
             raise ValueError("Preferred region: select at least one location or All Austria.")
-        parts = [part.strip().lower() for part in text]
-        if any(part in {"österreich", "austria"} for part in parts):
-            if len(parts) != 1:
-                raise ValueError("Preferred region: select All Austria on its own, or choose individual locations.")
+        normalized_selections = [item.strip().lower() for item in selected]
+        if any(item in {"österreich", "austria"} for item in normalized_selections):
+            if len(selected) != 1:
+                raise ValueError("Preferred region: select All Austria on its own.")
             return []
+        value = None
     else:
         value = text.strip().lower()
 
-        # An empty interpreted list means nationwide search.
-        if value in {"", "österreich", "austria"}:
-            return []
-
-        # Legacy text callers can separate complete location names.
-        parts = re.split(r"\s+(?:oder|und|or|and)\s+|[,;/]", value)
+    # Empty list means nationwide search.
+    if value in {
+        "",
+        "österreich",
+        "austria",
+    }:
+        return []
 
     candidates = {
         # Cities
@@ -144,13 +152,13 @@ def interpret_region(text: str | list[str]) -> list[str]:
         "burgenland": "Burgenland",
     }
 
+    parts = normalized_selections if selected is not None else re.split(r"\s+(?:oder|und|or|and)\s+|[,;/]", value)
     locations = []
     for part in parts:
         normalized = candidates.get(part.strip())
         if normalized is None:
             raise ValueError(
-                "Preferred region: enter an Austrian city or federal state "
-                "represented in the dataset, or Österreich for all Austria. "
+                "Preferred region: enter an Austrian city or federal state represented in the dataset, or Österreich for all Austria. "
                 "Separate multiple locations with 'oder' or commas."
             )
         if normalized not in locations:
@@ -167,7 +175,7 @@ def profile_input_errors(profile: BusinessProfile) -> list[str]:
             "Fitness / Wellness, or Logistik."
         )
     target = profile.zielgruppe.strip().casefold()
-    if not re.search(r"\b(?:junge|student\w*|studierende\w*)\b|\b25\b|\bab\s+30\b", target):
+    if target not in TARGET_GROUP_WEIGHTS and not re.search(r"\b(?:junge|student\w*|studierende\w*)\b|\b25\b|\bab\s+30\b", target):
         errors.append(
             "Target group: use a supported description such as Junge Berufstätige "
             "(25–40), Studierende und Familien, or Erwachsene ab 30."

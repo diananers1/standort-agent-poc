@@ -1,5 +1,7 @@
 from pathlib import Path
 
+from standort_agent.interpretation.rules import profile_for_display
+
 from jinja2 import (
     Environment,
     FileSystemLoader,
@@ -24,6 +26,8 @@ def generate_html_report(
     profile: BusinessProfile,
     rankings: list[MunicipalityEvaluation],
     output_path: str | Path,
+    customer_explanation: str | None = None,
+    llm_status: str | None = None,
 ) -> Path:
     """
     Generate a standalone HTML report from already-calculated
@@ -44,10 +48,11 @@ def generate_html_report(
     )
 
     html = template.render(
-        profile=profile,
+        profile=profile_for_display(profile),
         rankings=rankings,
         top_results=rankings[:5],
-        customer_explanation=explain_for_customer(profile, rankings[0]) if rankings else None,
+        customer_explanation=customer_explanation or (explain_for_customer(profile, rankings[0]) if rankings else None),
+        llm_status=llm_status,
     )
 
     output_path = Path(

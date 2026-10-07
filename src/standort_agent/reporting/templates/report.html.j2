@@ -314,6 +314,8 @@
 </section>
 {% endif %}
 
+{% if llm_status and not llm_status.startswith("Groq LLM analysis:") %}<p>{{ llm_status }}</p>{% endif %}
+
 <p class="footer">
 
     Scores are decision-support indicators based on the

@@ -55,9 +55,7 @@ def analyze_location(
     UI output.
     """
 
-    # -----------------------------------------------
     # 1. Build validated business profile
-    # -----------------------------------------------
 
     values = dict(
         branche=branche, flaeche_m2=flaeche_m2, zielgruppe=zielgruppe,
@@ -89,9 +87,7 @@ def analyze_location(
         return [], "## Please check your input\n\n" + "\n\n".join(errors), None
 
 
-    # -----------------------------------------------
     # 2. Run LangGraph workflow
-    # -----------------------------------------------
 
     result = location_graph.invoke(
         {
@@ -103,9 +99,7 @@ def analyze_location(
     )
 
 
-    # -----------------------------------------------
     # 3. Handle unsupported/out-of-scope requests
-    # -----------------------------------------------
 
     if result.get("error"):
 
@@ -133,9 +127,7 @@ Try for example:
         )
 
 
-    # -----------------------------------------------
     # 4. Generate standalone HTML report
-    # -----------------------------------------------
 
     if not result.get("top_results"):
         return [], "## No matching locations\n\nTry a different Austrian region.", None
@@ -144,12 +136,12 @@ Try for example:
         profile=profile,
         rankings=result["rankings"],
         output_path=OUTPUT_PATH,
+        customer_explanation=result.get("customer_explanation"),
+        llm_status=result.get("llm_status"),
     )
 
 
-    # -----------------------------------------------
     # 5. Build table shown in Gradio
-    # -----------------------------------------------
 
     rows = []
 
@@ -197,9 +189,7 @@ Try for example:
         )
 
 
-    # -----------------------------------------------
     # 6. Build explanation for best location
-    # -----------------------------------------------
 
     best = result[
         "top_results"
@@ -230,11 +220,11 @@ Try for example:
 """
 
 
-    # -----------------------------------------------
     # 7. Return outputs to Gradio
-    # -----------------------------------------------
 
-    summary += "\n\n## What this means for your business\n\n" + explain_for_customer(profile, best)
+    summary += "\n\n## What this means for your business\n\n" + (result.get("customer_explanation") or explain_for_customer(profile, best))
+    if not result.get("llm_status", "").startswith("Groq LLM analysis:"):
+        summary += "\n\n" + result.get("llm_status", "Offline mode")
 
     return (
         rows,
@@ -252,9 +242,7 @@ def analyze_with_error_popup(*inputs):
         raise gr.Error(message)
 
 
-# ===================================================
 # GRADIO USER INTERFACE
-# ===================================================
 
 
 with gr.Blocks(
@@ -274,21 +262,19 @@ activity, rent affordability and public transport.
     )
 
 
-    # ------------------------------------------------
     # Business input
-    # ------------------------------------------------
 
     with gr.Row():
 
         branche = gr.Dropdown(
             label="Business / Industry",
             choices=[
-                ("Retail / Shops", "Retail / Einzelhandel"),
-                ("Gastronomy / Café", "Gastronomie / Café"),
-                ("Fitness / Wellness", "Fitness / Wellnessstudio"),
-                ("Logistics", "Logistik"),
+                ("Retail / Shops", "retail"),
+                ("Gastronomy / Café", "cafe"),
+                ("Fitness / Wellness", "fitness"),
+                ("Logistics", "logistics"),
             ],
-            value="Retail / Einzelhandel",
+            value="retail",
             allow_custom_value=False,
             info="Choose the industry that best matches your business.",
         )
@@ -305,11 +291,11 @@ activity, rent affordability and public transport.
         zielgruppe = gr.Dropdown(
             label="Target group",
             choices=[
-                ("Young professionals (25–40)", "Junge Berufstätige (25–40)"),
-                ("Students and families", "Studierende und Familien"),
-                ("Health-conscious adults aged 30+", "Erwachsene ab 30, gesundheitsbewusst"),
+                ("Young professionals (25–40)", "young_professionals"),
+                ("Students and families", "students_families"),
+                ("Health-conscious adults aged 30+", "adults_30_plus"),
             ],
-            value="Junge Berufstätige (25–40)",
+            value="young_professionals",
             allow_custom_value=False,
             info="Choose the customer group you want to reach.",
         )
@@ -349,9 +335,7 @@ activity, rent affordability and public transport.
     )
 
 
-    # ------------------------------------------------
     # Ranking output
-    # ------------------------------------------------
 
     gr.Markdown(
         "## Recommended Locations"
@@ -381,16 +365,12 @@ activity, rent affordability and public transport.
     )
 
 
-    # ------------------------------------------------
     # Explanation
-    # ------------------------------------------------
 
     summary_output = gr.Markdown()
 
 
-    # ------------------------------------------------
     # HTML report
-    # ------------------------------------------------
 
     report_file = gr.File(
         label="Standalone HTML Report",
@@ -398,9 +378,7 @@ activity, rent affordability and public transport.
     )
 
 
-    # ------------------------------------------------
     # Button action
-    # ------------------------------------------------
 
     analyze_button.click(
         fn=analyze_with_error_popup,

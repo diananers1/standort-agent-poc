@@ -24,8 +24,7 @@ def test_explanation_discloses_actual_budget_overrun(recommendation):
     assert rankings[0].municipality.gemeinde in text
     assert "€4,400" in text
     assert "€400 above your budget" in text
-    assert "synthetic data" in text
-    assert "do not predict sales" in text
+    assert "Use this comparison to choose where to investigate next" not in text
 
 
 @pytest.mark.parametrize("budget,phrase", [(5000, "€600 within your rent budget"), (4400, "no rent headroom")])

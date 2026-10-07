@@ -1,6 +1,8 @@
 import json
 from pathlib import Path
 
+# Loads JSON and validates it through the models.
+
 from standort_agent.models import (
     BusinessProfile,
     MunicipalityDataset,

@@ -51,8 +51,4 @@ def explain_for_customer(
     else:
         rent = f"Estimated rent is €{monthly_rent:,.0f} per month, exactly matching your rent budget with no rent headroom."
 
-    conclusion = (
-        "Use this comparison to choose where to investigate next. Check actual premises, rental quotes "
-        "and customer demand locally: these estimates use simplified, synthetic data and do not predict sales."
-    )
-    return "\n\n".join([introduction, audience, surroundings, access, rent, conclusion])
+    return "\n\n".join([introduction, audience, surroundings, access, rent])

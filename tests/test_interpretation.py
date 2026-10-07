@@ -89,3 +89,30 @@ def test_interpret_example_profile(number, category, locations):
     assert result.flaeche_m2 == raw.flaeche_m2
     assert result.budget_miete_eur == raw.budget_miete_eur
     assert sum(result.target_age_weights.model_dump().values()) == pytest.approx(1)
+
+
+@pytest.mark.parametrize("industry,group", [
+    ("retail", "young_professionals"),
+    ("cafe", "students_families"),
+    ("fitness", "adults_30_plus"),
+    ("logistics", "young_professionals"),
+])
+def test_dropdown_profile_uses_direct_mappings(industry, group, monkeypatch):
+    from standort_agent.models import BusinessProfile
+    from standort_agent.interpretation.rules import profile_input_errors
+
+    def unexpected_parse(*args, **kwargs):
+        pytest.fail("Dropdown IDs and lists must not use text parsing")
+
+    monkeypatch.setattr("standort_agent.interpretation.rules.re.search", unexpected_parse)
+    monkeypatch.setattr("standort_agent.interpretation.rules.re.split", unexpected_parse)
+    profile = BusinessProfile(
+        branche=industry, zielgruppe=group,
+        region_praeferenz=["Graz", "Wien"],
+        flaeche_m2=200, budget_miete_eur=4000,
+    )
+    assert profile_input_errors(profile) == []
+    interpreted = interpret_profile(profile)
+    assert interpreted.business_category == industry
+    assert interpreted.preferred_locations == ["Graz", "Wien"]
+    assert sum(interpreted.target_age_weights.model_dump().values()) == pytest.approx(1)

@@ -29,3 +29,5 @@ class LocationState(TypedDict, total=False):
 
     # Used when the workflow cannot continue
     error: str
+    llm_status: str
+    customer_explanation: str

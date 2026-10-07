@@ -13,6 +13,8 @@ dependencies = [
     "langgraph",
     "gradio",
     "jinja2",
+    "groq>=1.7.0",
+    "python-dotenv>=1.2",
 ]
 
 [project.optional-dependencies]

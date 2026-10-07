@@ -10,30 +10,25 @@ def affordability_score(
     ratio: float,
 ) -> float:
     """
-    ratio =
-        estimated monthly rent
-        /
-        monthly rent budget
+    ratio = estimated monthly rent / monthly rent budget
     """
 
+    # Rent uses 80% or less of budget -> score 100
     if ratio <= 0.80:
         return 100.0
 
     if ratio <= 1.00:
-        # 80% -> 100
-        # 100% -> 80
+        # Rent uses 100% or less of budget -> score 80
         progress = (ratio - 0.80) / 0.20
         return 100.0 - progress * 20.0
 
     if ratio <= 1.25:
-        # 100% -> 80
-        # 125% -> 30
+        # Rent uses 125% or less of budget -> score 30
         progress = (ratio - 1.00) / 0.25
         return 80.0 - progress * 50.0
 
     if ratio <= 1.50:
-        # 125% -> 30
-        # 150% -> 0
+        # Rent uses 150% or less of budget -> score 0
         progress = (ratio - 1.25) / 0.25
         return 30.0 - progress * 30.0
 
@@ -50,20 +45,17 @@ class RentAgent(SignalAgent):
     ) -> SignalResult:
 
         estimated_monthly_rent = (
-            municipality.mietindex_eur_m2
-            * profile.flaeche_m2
+            municipality.mietindex_eur_m2* profile.flaeche_m2
         )
 
         ratio = (
-            estimated_monthly_rent
-            / profile.budget_miete_eur
+            estimated_monthly_rent / profile.budget_miete_eur
         )
 
         score = affordability_score(ratio)
 
         difference = (
-            estimated_monthly_rent
-            - profile.budget_miete_eur
+            estimated_monthly_rent - profile.budget_miete_eur
         )
 
         if difference <= 0:
