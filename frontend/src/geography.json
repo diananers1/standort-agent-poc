@@ -1,0 +1,162 @@
+{
+  "Wien (1., Innere Stadt)": {
+    "lat": 48.209722,
+    "lon": 16.37,
+    "precision": "district",
+    "zoom": 14,
+    "source": "https://de.wikipedia.org/wiki/Innere_Stadt_%28Wien%29",
+    "verified_on": "2026-10-08"
+  },
+  "Wien (7., Neubau)": {
+    "lat": 48.2025,
+    "lon": 16.348056,
+    "precision": "district",
+    "zoom": 14,
+    "source": "https://de.wikipedia.org/wiki/Neubau_%28Wien%29",
+    "verified_on": "2026-10-08"
+  },
+  "Wien (10., Favoriten)": {
+    "lat": 48.157778,
+    "lon": 16.359167,
+    "precision": "district",
+    "zoom": 14,
+    "source": "https://de.wikipedia.org/wiki/Favoriten",
+    "verified_on": "2026-10-08"
+  },
+  "Graz (Innere Stadt)": {
+    "lat": 47.071944,
+    "lon": 15.440833,
+    "precision": "district",
+    "zoom": 14,
+    "source": "https://de.wikipedia.org/wiki/Innere_Stadt_%28Graz%29",
+    "verified_on": "2026-10-08"
+  },
+  "Graz (Lend)": {
+    "lat": 47.078056,
+    "lon": 15.425833,
+    "precision": "district",
+    "zoom": 14,
+    "source": "https://de.wikipedia.org/wiki/Lend_%28Graz%29",
+    "verified_on": "2026-10-08"
+  },
+  "Leoben (Zentrum)": {
+    "lat": 47.381667,
+    "lon": 15.097222,
+    "precision": "city-centre",
+    "zoom": 15,
+    "source": "https://de.wikipedia.org/wiki/Leoben",
+    "verified_on": "2026-10-08"
+  },
+  "Linz (Stadtmitte)": {
+    "lat": 48.3,
+    "lon": 14.291667,
+    "precision": "district",
+    "zoom": 14,
+    "source": "https://de.wikipedia.org/wiki/Innenstadt_%28Linz%29",
+    "verified_on": "2026-10-08"
+  },
+  "Linz (Urfahr)": {
+    "lat": 48.3175,
+    "lon": 14.284167,
+    "precision": "district",
+    "zoom": 14,
+    "source": "https://de.wikipedia.org/wiki/Urfahr",
+    "verified_on": "2026-10-08"
+  },
+  "Wels (Innenstadt)": {
+    "lat": 48.1575,
+    "lon": 14.026667,
+    "precision": "city-centre",
+    "zoom": 15,
+    "source": "https://de.wikipedia.org/wiki/Wels_%28Stadt%29",
+    "verified_on": "2026-10-08"
+  },
+  "Innsbruck (Zentrum)": {
+    "lat": 47.268333,
+    "lon": 11.393056,
+    "precision": "district",
+    "zoom": 14,
+    "source": "https://de.wikipedia.org/wiki/Innenstadt_%28Innsbruck%29",
+    "verified_on": "2026-10-08"
+  },
+  "Innsbruck (Wilten)": {
+    "lat": 47.254167,
+    "lon": 11.398333,
+    "precision": "district",
+    "zoom": 14,
+    "source": "https://de.wikipedia.org/wiki/Wilten",
+    "verified_on": "2026-10-08"
+  },
+  "Salzburg (Altstadt)": {
+    "lat": 47.803611,
+    "lon": 13.038306,
+    "precision": "district",
+    "zoom": 14,
+    "source": "https://www.wikidata.org/wiki/Q263701",
+    "verified_on": "2026-10-08"
+  },
+  "Salzburg (Lehen)": {
+    "lat": 47.814078,
+    "lon": 13.031072,
+    "precision": "district",
+    "zoom": 14,
+    "source": "https://de.wikipedia.org/wiki/Lehen_%28Salzburg%29",
+    "verified_on": "2026-10-08"
+  },
+  "Klagenfurt (Innenstadt)": {
+    "lat": 46.624979,
+    "lon": 14.308141,
+    "precision": "district",
+    "zoom": 14,
+    "source": "https://de.wikipedia.org/wiki/Innere_Stadt_%28Klagenfurt_am_W%C3%B6rthersee%29",
+    "verified_on": "2026-10-08"
+  },
+  "Villach (Zentrum)": {
+    "lat": 46.61339,
+    "lon": 13.84613,
+    "precision": "city-centre",
+    "zoom": 15,
+    "source": "https://de.wikipedia.org/wiki/Villach",
+    "verified_on": "2026-10-08"
+  },
+  "St. Pölten (Zentrum)": {
+    "lat": 48.204722,
+    "lon": 15.626667,
+    "precision": "city-centre",
+    "zoom": 15,
+    "source": "https://de.wikipedia.org/wiki/St._P%C3%B6lten",
+    "verified_on": "2026-10-08"
+  },
+  "Wiener Neustadt (Zentrum)": {
+    "lat": 47.813153,
+    "lon": 16.24444,
+    "precision": "city-centre",
+    "zoom": 15,
+    "source": "https://de.wikipedia.org/wiki/Wiener_Neustadt",
+    "verified_on": "2026-10-08"
+  },
+  "Eisenstadt (Zentrum)": {
+    "lat": 47.845556,
+    "lon": 16.518889,
+    "precision": "city-centre",
+    "zoom": 15,
+    "source": "https://de.wikipedia.org/wiki/Eisenstadt",
+    "verified_on": "2026-10-08"
+  },
+  "Bregenz (Zentrum)": {
+    "lat": 47.505,
+    "lon": 9.749167,
+    "precision": "city-centre",
+    "zoom": 15,
+    "source": "https://de.wikipedia.org/wiki/Bregenz",
+    "verified_on": "2026-10-08"
+  },
+  "Dornbirn (Zentrum)": {
+    "lat": 47.413417,
+    "lon": 9.744417,
+    "precision": "city-centre",
+    "zoom": 15,
+    "source": "https://de.wikipedia.org/wiki/Dornbirn",
+    "verified_on": "2026-10-08"
+  }
+}

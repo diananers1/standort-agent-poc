@@ -34,9 +34,9 @@ class POIAgent(SignalAgent):
             score=score,
             raw_value=municipality.poi_dichte,
             reason=(
-                f"POI density is "
+                f"Nearby shops, services and amenities have a density rating of "
                 f"{municipality.poi_dichte:.1f}/10. "
-                "This is used as a proxy for surrounding "
-                "commercial activity, not direct competition."
+                "This indicates surrounding commercial activity; "
+                "it does not measure customer footfall or count direct competitors."
             ),
         )

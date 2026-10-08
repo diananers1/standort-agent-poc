@@ -93,3 +93,10 @@ Run tests without network calls:
 ```bash
 STANDORT_LLM_MODE=offline pytest -q
 ```
+
+## Custom web dashboard
+
+The application now includes a responsive React/TypeScript dashboard with a
+FastAPI backend, streamed analysis progress, visual score breakdowns,
+side-by-side comparison, geographic context and downloadable reports.
+See [DEPLOYMENT.md](DEPLOYMENT.md) for local setup and the Render Free deployment.

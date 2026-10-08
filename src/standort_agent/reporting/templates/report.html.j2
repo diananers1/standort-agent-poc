@@ -11,7 +11,7 @@
         content="width=device-width, initial-scale=1.0"
     >
 
-    <title>Standort Agent Report</title>
+    <title>Standora — Location report</title>
 
     <style>
 
@@ -26,7 +26,8 @@
             margin: 40px auto;
             padding: 0 24px;
             line-height: 1.6;
-            color: #222;
+            color: #21314e;
+            background: #f3f6fb;
         }
 
         h1 {
@@ -40,7 +41,8 @@
 
         .profile {
             padding: 20px;
-            border: 1px solid #ddd;
+            border: 1px solid #dde5f0;
+            background: white;
             border-radius: 10px;
             margin-bottom: 30px;
         }
@@ -59,7 +61,7 @@
         }
 
         th {
-            background: #f5f5f5;
+            background: #edf2fa;
         }
 
         .score {
@@ -68,7 +70,8 @@
 
         .location {
             padding: 20px;
-            border: 1px solid #ddd;
+            border: 1px solid #dde5f0;
+            background: white;
             border-radius: 10px;
             margin-bottom: 18px;
         }
@@ -92,6 +95,14 @@
             font-size: 0.9rem;
         }
 
+        h1 { color: #223e70; font-size: 38px; letter-spacing: -1.5px; }
+        h2 { color: #223e70; }
+        .profile { border-top: 4px solid #223e70; }
+        .score { color: #223e70; }
+        .footer { border-top: 1px solid #dde5f0; padding-top: 20px; }
+        @media print { body { background: white; margin: 0; } details > * { display: block; } .location { break-inside: avoid; } }
+        @media (max-width: 650px) { body { padding: 0 12px; } table { font-size: 10px; } th, td { padding: 8px 4px; } }
+        .chart-row{display:grid;grid-template-columns:220px 1fr 45px;gap:14px;align-items:center;margin:16px 0;font-size:13px}.track{height:18px;background:#edf2fa;border-radius:5px;position:relative}.track>div{height:100%;border-radius:4px}.stacked{display:flex}.stacked>div{border-radius:0}.budget-track i{position:absolute;top:-4px;bottom:-4px;border-left:2px dashed #172b50}.rent-row{margin:22px 0}.rent-row>span{display:block;font-size:13px;margin:5px 0 9px}.legend{display:flex;flex-wrap:wrap;gap:16px;font-size:12px}.legend i{display:inline-block;width:10px;height:10px;margin-right:6px}.chart-row b{text-align:right}@media(max-width:650px){.chart-row{grid-template-columns:1fr 45px;gap:7px}.chart-row>span{grid-column:1/-1}}@media print{.track,.legend i{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
     </style>
 
 </head>
@@ -99,10 +110,10 @@
 
 <body>
 
-<h1>Standort Agent</h1>
+<h1>Standora</h1>
 
 <p class="subtitle">
-    Explainable location recommendation report
+    LOCATION INTELLIGENCE · Explainable recommendation report
 </p>
 
 
@@ -138,7 +149,22 @@
 </section>
 
 
-<h2>Top Locations</h2>
+{% if rankings %}
+{% set best = rankings[0] %}
+<section class="location"><h2>Your strongest match: {{ best.municipality.gemeinde }}</h2>
+<p>{{ best.municipality.bundesland }} · Overall suitability {{ "%.1f"|format(best.total_score) }}/100</p>
+<p><strong>Estimated monthly rent:</strong> €{{ "%.0f"|format(best.municipality.mietindex_eur_m2 * profile.flaeche_m2) }} · <strong>Dataset population:</strong> {{ "{:,}".format(best.municipality.einwohner) }}</p>
+</section>
+<section class="location"><h2>Compare your top locations</h2><p>Raw signal scores on the same 0–100 scale.</p>
+{% for key, label, color in signals %}<h3>{{ label }}</h3>{% for result in rankings[:3] %}<div class="chart-row"><span>{{ result.municipality.gemeinde }}</span><div class="track"><div style="width:{{ result.signals[key].score }}%;background:{{ color }}"></div></div><b>{{ "%.1f"|format(result.signals[key].score) }}</b></div>{% endfor %}{% endfor %}
+</section>
+<section class="location"><h2>Does the rent fit your budget?</h2><p>Illustrative monthly rent for {{ profile.flaeche_m2 }} m². Monthly budget: €{{ "%.0f"|format(profile.budget_miete_eur) }}.</p>
+{% for result in rankings[:5] %}{% set rent = result.municipality.mietindex_eur_m2 * profile.flaeche_m2 %}<div class="rent-row"><strong>{{ result.municipality.gemeinde }}</strong><span>€{{ "%.0f"|format(rent) }} · €{{ "%.0f"|format((profile.budget_miete_eur - rent)|abs) }} {{ 'above budget' if rent > profile.budget_miete_eur else 'headroom' }}</span><div class="track budget-track"><div style="width:{{ rent / rent_max * 100 }}%;background:{{ '#d5983e' if rent > profile.budget_miete_eur else '#3558a7' }}"></div><i style="left:{{ profile.budget_miete_eur / rent_max * 100 }}%"></i></div></div>{% endfor %}
+<p>Rent index × floor area. Synthetic estimates, rather than property listings.</p></section>
+<section class="location"><h2>What puts a location ahead?</h2><p>Each segment shows its contribution after industry weighting.</p><div class="legend">{% for key, label, color in signals %}<span><i style="background:{{ color }}"></i>{{ label }} · {{ (weights[key] * 100)|round|int }}%</span>{% endfor %}</div>
+{% for result in rankings[:10] %}<div class="chart-row"><span>{{ result.municipality.gemeinde }}</span><div class="track stacked">{% for key, label, color in signals %}<div style="width:{{ result.signals[key].score * weights[key] }}%;background:{{ color }}" title="{{ label }}: {{ '%.1f'|format(result.signals[key].score * weights[key]) }} points"></div>{% endfor %}</div><b>{{ "%.1f"|format(result.total_score) }}</b></div>{% endfor %}</section>
+{% endif %}
+<h2>The full ranking</h2>
 
 <table>
 
@@ -148,10 +174,10 @@
             <th>Rank</th>
             <th>Municipality</th>
             <th>Overall</th>
-            <th>Demographics</th>
-            <th>POI</th>
+            <th>Customer fit</th>
+            <th>Surrounding activity</th>
             <th>Rent</th>
-            <th>Transit</th>
+            <th>Public transport</th>
         </tr>
 
     </thead>
@@ -207,7 +233,7 @@
 </table>
 
 
-<h2>Location Explanations</h2>
+<h2>Location summaries & evidence</h2>
 
 
 {% for result in top_results %}
@@ -228,7 +254,8 @@
     </p>
 
 
-    <details>
+    <p>{{ result.municipality.bundesland }} · Population: {{ "{:,}".format(result.municipality.einwohner) }} · Estimated monthly rent: €{{ "%.0f"|format(result.municipality.mietindex_eur_m2 * profile.flaeche_m2) }}</p>
+    <details open>
 
         <summary>
             Show signal explanations
@@ -238,7 +265,7 @@
         <div class="signal">
 
             <strong>
-                Demographics —
+                Customer fit —
                 {{ "%.1f"|format(
                     result.signals["demographics"].score
                 ) }}/100
@@ -254,7 +281,7 @@
         <div class="signal">
 
             <strong>
-                POI —
+                Surrounding activity —
                 {{ "%.1f"|format(
                     result.signals["poi"].score
                 ) }}/100
@@ -286,7 +313,7 @@
         <div class="signal">
 
             <strong>
-                Transit —
+                Public transport —
                 {{ "%.1f"|format(
                     result.signals["transit"].score
                 ) }}/100
@@ -314,12 +341,13 @@
 </section>
 {% endif %}
 
-{% if llm_status and not llm_status.startswith("Groq LLM analysis:") %}<p>{{ llm_status }}</p>{% endif %}
 
+
+<section class="location"><h2>How it works</h2><p>Python normalises four signals using the full dataset and combines them with industry-specific weights. Regional preferences filter candidates. Budget influences suitability; it does not exclude locations.</p><p>Surrounding activity reflects nearby shops, services and amenities, rather than measured footfall or direct competitor counts. AI, when configured, interprets the evidence without changing the ranking.</p></section>
 <p class="footer">
 
     Scores are decision-support indicators based on the
-    supplied synthetic municipality dataset and should not be
+    supplied synthetic municipality dataset (20 municipalities / districts, June 2026) and should not be
     interpreted as official location advice.
 
 </p>

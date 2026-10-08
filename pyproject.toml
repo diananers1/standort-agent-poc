@@ -12,6 +12,8 @@ dependencies = [
     "pydantic>=2.0",
     "langgraph",
     "gradio",
+    "fastapi>=0.115",
+    "uvicorn>=0.30",
     "jinja2",
     "groq>=1.7.0",
     "python-dotenv>=1.2",
@@ -28,3 +30,6 @@ where = ["src"]
 [tool.pytest.ini_options]
 pythonpath = ["src"]
 testpaths = ["tests"]
+
+[tool.setuptools.package-data]
+standort_agent = ["reporting/templates/*.j2"]

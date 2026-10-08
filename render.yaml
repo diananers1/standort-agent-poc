@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: standora
+    runtime: python
+    plan: free
+    buildCommand: pip install . && cd frontend && npx --yes pnpm@11.19.0 install --frozen-lockfile && npx --yes pnpm@11.19.0 run build
+    startCommand: uvicorn standort_agent.api:app --app-dir src --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.8
+      - key: NODE_VERSION
+        value: 22
+      - key: STANDORT_LLM_MODE
+        value: auto

@@ -1,6 +1,8 @@
 from pathlib import Path
+from standort_agent.reporting.names import format_location_text
 
-from standort_agent.interpretation.rules import profile_for_display
+from standort_agent.interpretation.rules import profile_for_display, interpret_profile
+from standort_agent.scoring.weighting import get_weights
 
 from jinja2 import (
     Environment,
@@ -50,7 +52,10 @@ def generate_html_report(
     html = template.render(
         profile=profile_for_display(profile),
         rankings=rankings,
-        top_results=rankings[:5],
+        top_results=rankings,
+        weights=get_weights(interpret_profile(profile)),
+        signals=[('demographics', 'Customer fit', '#3558a7'), ('poi', 'Surrounding activity', '#8b86cc'), ('rent', 'Rent affordability', '#d5983e'), ('transit', 'Public transport', '#65a9d3')],
+        rent_max=max([profile.budget_miete_eur] + [r.municipality.mietindex_eur_m2 * profile.flaeche_m2 for r in rankings]) * 1.15,
         customer_explanation=customer_explanation or (explain_for_customer(profile, rankings[0]) if rankings else None),
         llm_status=llm_status,
     )
@@ -65,7 +70,7 @@ def generate_html_report(
     )
 
     output_path.write_text(
-        html,
+        format_location_text(html),
         encoding="utf-8",
     )
 

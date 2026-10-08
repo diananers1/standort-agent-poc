@@ -54,3 +54,19 @@ def test_report_includes_customer_explanation(recommendation, tmp_path):
     html = report.read_text(encoding="utf-8")
     assert "What this means for your business" in html
     assert "€400 above your budget" in html
+
+
+def test_report_exports_complete_summary_without_maps(recommendation, tmp_path):
+    profile, rankings = recommendation
+    html = generate_html_report(profile, rankings, tmp_path / 'complete.html').read_text()
+    for result in rankings:
+        from standort_agent.reporting.names import format_location_text
+        assert format_location_text(result.municipality.gemeinde) in html
+        for signal in result.signals.values():
+            from html import escape
+            assert escape(signal.reason, quote=False) in html
+    for heading in ['The full ranking', 'Compare your top locations', 'Does the rent fit your budget?', 'What puts a location ahead?', 'How it works']:
+        assert heading in html
+    assert '<iframe' not in html
+    assert 'leaflet' not in html.lower()
+    assert '<script src=' not in html
